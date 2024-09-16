@@ -437,8 +437,34 @@ jobs:
           java-version: 11
           server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
           settings-path: ${{ github.workspace }} # location for the settings.xml file
+      - name: Install GPG
+        run: sudo apt-get install -y gnupg
+      - name: Setup Branch and GPG Keys
+        run: |
+            # Output branch name and GPG_TTY for debugging
+            echo "Branch Name: ${{ env.BRANCH_NAME }}"
+            echo "GPG_TTY: ${{ env.GPG_TTY }}"
 
+            # Install GPG if not already installed
+            sudo apt-get update
+            sudo apt-get --yes install gnupg2
 
+            # Import the public key
+            if [ -f ./.github/keys/mosipgpgkey_pub.gpg ]; then
+               gpg --import ./.github/keys/mosipgpgkey_pub.gpg
+            else
+               echo "Public key file not found!"
+               exit 1
+            fi
+
+             # Import the secret key with passphrase
+             if [ -f ./.github/keys/mosipgpgkey_sec.gpg ]; then
+                echo "${{ secrets.gpg_secret }}" | gpg --batch --yes --passphrase-fd 0 --import ./.github/keys/mosipgpgkey_sec.gpg
+             else
+               echo "Secret key file not found!"
+               exit 1
+             fi
+                   
       - name: Setup branch and env
         run: |
           # Strip git ref prefix from version
