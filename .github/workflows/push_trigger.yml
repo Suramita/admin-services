@@ -33,15 +33,31 @@ jobs:
         echo "BRANCH_NAME=$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')" >> $GITHUB_ENV
         echo "GPG_TTY=$(tty)" >> $GITHUB_ENV    
 
-    - name: Setup branch and GPG public key 
+    - name: Setup Branch and GPG Keys
       run: |
-        # Strip git ref prefix from version
-        echo ${{ env.BRANCH_NAME }}
-        echo ${{ env.GPG_TTY }}
+        # Output branch name and GPG_TTY for debugging
+        echo "Branch Name: ${{ env.BRANCH_NAME }}"
+        echo "GPG_TTY: ${{ env.GPG_TTY }}"
+
+        # Install GPG if not already installed
+        sudo apt-get update
         sudo apt-get --yes install gnupg2
-        gpg2 --import ./.github/keys/mosipgpgkey_pub.gpg 
-        gpg2 --quiet --batch --passphrase=${{secrets.gpg_secret}}  --allow-secret-key-import --import ./.github/keys/mosipgpgkey_sec.gpg 
-     
+
+        # Import the public key
+        if [ -f ./.github/keys/mosipgpgkey_pub.gpg ]; then
+           gpg --import ./.github/keys/mosipgpgkey_pub.gpg
+        else
+           echo "Public key file not found!"
+           exit 1
+        fi
+
+          # Import the secret key with passphrase
+        if [ -f ./.github/keys/mosipgpgkey_sec.gpg ]; then
+            echo "${{ secrets.gpg_secret }}" | gpg --batch --yes --passphrase-fd 0 --import ./.github/keys/mosipgpgkey_sec.gpg
+        else
+            echo "Secret key file not found!"
+           exit 1
+         fi
     - uses: actions/cache@v3
       with:
         path: ~/.m2/repository
