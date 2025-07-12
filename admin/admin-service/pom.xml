@@ -17,7 +17,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<spring-cloud-config.version>2.0.4.RELEASE</spring-cloud-config.version>
-		<springdoc.version>1.5.10</springdoc.version>
+		<springdoc.version>1.7.0</springdoc.version>
 		<kernel.version>1.2.0.1</kernel.version>
 	</properties>
 	<dependencies>
